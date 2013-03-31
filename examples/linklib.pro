@@ -19,6 +19,8 @@
 
 -optimizations code/removal/all
 
+# These attributes are essentially parts of class signature
+-keepattributes Signature,Exceptions,Deprecated,InnerClasses
 # The bytecode produced generally may be not valid, but (some versions of?)
 # javac compiles against it pretty well.
 -dontpreverify
@@ -26,12 +28,11 @@
 -keep public interface **
 -keep public class **
 -keepclassmembers public class * {
-    public <fields>;
-    public <methods>;
-    public <init>(***);
+    public protected *;
 }
 
 -keepclasseswithmembers class *
+-keeppackagenames **
 
 -dump linklib.txt
 # If you don't specify all dependencies, you may get lot of warnings.
