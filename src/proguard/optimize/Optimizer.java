@@ -73,6 +73,7 @@ public class Optimizer
     private static final String CODE_REMOVAL_SIMPLE            = "code/removal/simple";
     private static final String CODE_REMOVAL_VARIABLE          = "code/removal/variable";
     private static final String CODE_REMOVAL_EXCEPTION         = "code/removal/exception";
+    private static final String CODE_REMOVAL_ALL               = "code/removal/all";
     private static final String CODE_ALLOCATION_VARIABLE       = "code/allocation/variable";
 
 
@@ -105,6 +106,7 @@ public class Optimizer
         CODE_REMOVAL_SIMPLE,
         CODE_REMOVAL_VARIABLE,
         CODE_REMOVAL_EXCEPTION,
+        CODE_REMOVAL_ALL,
         CODE_ALLOCATION_VARIABLE,
     };
 
@@ -167,6 +169,7 @@ public class Optimizer
         boolean codeRemovalSimple            = filter.matches(CODE_REMOVAL_SIMPLE);
         boolean codeRemovalVariable          = filter.matches(CODE_REMOVAL_VARIABLE);
         boolean codeRemovalException         = filter.matches(CODE_REMOVAL_EXCEPTION);
+        boolean codeRemovalAll               = filter.matches(CODE_REMOVAL_ALL);
         boolean codeAllocationVariable       = filter.matches(CODE_ALLOCATION_VARIABLE);
 
         // Create counters to count the numbers of optimizations.
@@ -816,6 +819,15 @@ public class Optimizer
                 new AllMethodVisitor(
                 new AllAttributeVisitor(
                 new UnreachableCodeRemover(deletedCounter))));
+        }
+
+        if (codeRemovalAll)
+        {
+            // Remove unreachable code.
+            programClassPool.classesAccept(
+                new AllMethodVisitor(
+                new AllAttributeVisitor(
+                new AllCodeRemover(deletedCounter))));
         }
 
         if (codeRemovalVariable)
