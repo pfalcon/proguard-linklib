@@ -827,7 +827,7 @@ public class Optimizer
             programClassPool.classesAccept(
                 new AllMethodVisitor(
                 new AllAttributeVisitor(
-                new AllCodeRemover(deletedCounter))));
+                new AllCodeRemover())));
         }
 
         if (codeRemovalVariable)

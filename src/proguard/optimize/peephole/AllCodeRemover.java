@@ -23,20 +23,19 @@ package proguard.optimize.peephole;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
-import proguard.classfile.editor.CodeAttributeEditor;
+import proguard.classfile.editor.AttributesEditor;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.SimplifiedVisitor;
 
 /**
- * This InstructionVisitor deletes all blocks of code.
+ * This AttributeVisitor deletes all method bodies.
  *
- * @author Eric Lafortune
+ * @author Paul Sokolovsky
  */
 public class AllCodeRemover
 extends      SimplifiedVisitor
-implements   AttributeVisitor,
-             InstructionVisitor
+implements   AttributeVisitor
 {
     //*
     private static final boolean DEBUG = false;
@@ -44,30 +43,12 @@ implements   AttributeVisitor,
     private static       boolean DEBUG = true;
     //*/
 
-    private final InstructionVisitor  extraInstructionVisitor;
-
-    private final CodeAttributeEditor codeAttributeEditor = new CodeAttributeEditor();
-
-
     /**
      * Creates a new AllCodeRemover.
      */
     public AllCodeRemover()
     {
-        this(null);
     }
-
-
-    /**
-     * Creates a new AllCodeRemover.
-     * @param extraInstructionVisitor an optional extra visitor for all
-     *                                deleted instructions.
-     */
-    public AllCodeRemover(InstructionVisitor  extraInstructionVisitor)
-    {
-        this.extraInstructionVisitor = extraInstructionVisitor;
-    }
-
 
     // Implementations for AttributeVisitor.
 
@@ -76,55 +57,12 @@ implements   AttributeVisitor,
 
     public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
     {
-//        DEBUG =
-//            clazz.getName().equals("abc/Def") &&
-//            method.getName(clazz).equals("abc");
+        AttributesEditor editor =
+            new AttributesEditor((ProgramClass)clazz,
+                                 (ProgramMember)method,
+                                 true);
 
-        // TODO: Remove this when the code has stabilized.
-        // Catch any unexpected exceptions from the actual visiting method.
-        try
-        {
-            // Process the code.
-            visitCodeAttribute0(clazz, method, codeAttribute);
-        }
-        catch (RuntimeException ex)
-        {
-            System.err.println("Unexpected error while removing unreachable code:");
-            System.err.println("  Class       = ["+clazz.getName()+"]");
-            System.err.println("  Method      = ["+method.getName(clazz)+method.getDescriptor(clazz)+"]");
-            System.err.println("  Exception   = ["+ex.getClass().getName()+"] ("+ex.getMessage()+")");
-
-            throw ex;
-        }
+        editor.deleteAttribute(ClassConstants.ATTR_Code);
     }
 
-
-    public void visitCodeAttribute0(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        if (DEBUG)
-        {
-            System.out.println("UnreachableCodeRemover: "+clazz.getName()+"."+method.getName(clazz)+method.getDescriptor(clazz));
-        }
-
-        codeAttributeEditor.reset(codeAttribute.u4codeLength);
-
-        codeAttribute.instructionsAccept(clazz, method, this);
-
-        codeAttributeEditor.visitCodeAttribute(clazz, method, codeAttribute);
-    }
-
-
-    // Implementations for InstructionVisitor.
-
-    public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)
-    {
-        // Delete this instruction.
-        codeAttributeEditor.deleteInstruction(offset);
-
-        // Visit the instruction, if required.
-        if (extraInstructionVisitor != null)
-        {
-            instruction.accept(clazz, method, codeAttribute, offset, extraInstructionVisitor);
-        }
-    }
 }
