@@ -1,3 +1,30 @@
+proguard-linklib - Java linklib generator based on original ProGuard.
+
+The linklib idea is as follows: to compile java code, you only need class
+interface/signatures, not the actual code. If you're not interested in
+running the code on the same system where you compile code (for example,
+if target platform is embedded), and libraries are sizable, and you need
+to maintain several concurrent versions of the libs, and need to ship
+that all to third-parties in the form of SDK, it makes sense to actually
+remove all the code from the .jars, and provide shrinked libs for SDK-like
+usage and download.
+
+proguard-linklib implements exactly such code removal, together with other
+minimification techniques like removing private members (which can't be
+accessed or inherited), see examples/linklib.pro. On top of that,
+linklibize-jar is provided, which removes anonymous classes completely,
+and tightly packages resulting jar with 7zip.
+
+To assess kind of savings achieved, framework.jar from Android 1.6 was
+shrinked from 5418884 to 1681606 bytes, or more than 3-fold reduction in
+size.
+
+Please note that so far this should be considered proof of concept, and
+requires extensive testing yet.
+
+
+Below is original README content:
+
 ProGuard, Java class file shrinker, optimizer, obfuscator, and preverifier
 ==========================================================================
 
